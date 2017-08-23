@@ -4,7 +4,7 @@ require 'slim'
 require 'sequel'
 require 'bcrypt'
 
-DB ||= Sequel.connect(adapter: 'mysql',
+DB ||= Sequel.connect(adapter: 'mysql2',
                     host: 'localhost',
                     database: 'microblog',
                     user: ENV['MICROBLOG_DB_USERNAME'],
@@ -14,11 +14,12 @@ class Blog < Sinatra::Base
   configure :development do
     register Sinatra::Reloader
   end
+  enable :method_override
   set :sessions => true
   set :slim, :format => :html
 
   register do
-    def auth (type)
+    def auth(type)
       condition do
         redirect "/login" unless send("is_#{type}?")
       end
@@ -36,7 +37,7 @@ class Blog < Sinatra::Base
   end
 
   get "/login" do
-    slim :login
+    slim :login, layout: :layout
   end
 
   post "/login" do
@@ -65,7 +66,56 @@ class Blog < Sinatra::Base
     redirect "/login"
   end
 
+  get "/logout" do
+    session.delete(:user_id)
+    redirect "/login"
+  end
+
   get '/', :auth => :user do
-    slim :index
+    @user = @current_user
+    @posts = DB[:posts].where(user_id: @current_user[:id])
+    slim :'posts/index'
+  end
+
+  get '/posts/new', :auth => :user do
+    slim :'posts/new'
+  end
+
+  post '/posts', :auth => :user do
+    title = params['title']
+    content = params['content']
+    id = DB[:posts].insert(title: title, content: content, user_id: @current_user[:id])
+    redirect "/posts/#{id}"
+  end
+
+  get '/posts/:id' do
+    id = params[:id]
+    @post = DB[:posts].where(id: id).first
+    redirect '/' unless @post
+    slim :'posts/show'
+  end
+
+  get '/:user_id/posts' do
+    user_id = params[:user_id]
+    @user = DB[:users].where(id: user_id).first
+    redirect "/" unless @user
+    @posts = DB[:posts].where(user_id: user_id)
+    slim :'posts/index'
+  end
+
+  get '/posts/:id/edit', :auth => :user do
+    @post = DB[:posts].where(id: params[:id]).first
+    redirect '/' unless (@post and @post[:id] = @current_user[:id])
+    slim :'posts/edit'
+  end
+
+  patch '/posts/:id', :auth => :user do
+    id = params[:id]
+    title = params['title']
+    content = params['content']
+    post = DB[:posts].where(id: id).first
+    redirect '/' unless post and post[:user_id] == @current_user[:id]
+    DB[:posts].where(id: id).update(title: title, content: content)
+    redirect "/posts/#{id}"
   end
 end

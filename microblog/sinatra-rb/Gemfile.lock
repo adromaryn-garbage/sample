@@ -6,7 +6,7 @@ GEM
     ffi (1.9.18)
     multi_json (1.12.1)
     mustermann (1.0.0)
-    mysql (2.9.1)
+    mysql2 (0.4.9)
     puma (3.10.0)
     rack (2.0.3)
     rack-protection (2.0.0)
@@ -43,7 +43,7 @@ PLATFORMS
 
 DEPENDENCIES
   bcrypt!
-  mysql!
+  mysql2!
   puma!
   sass!
   sequel!
@@ -52,4 +52,4 @@ DEPENDENCIES
   slim!
 
 BUNDLED WITH
-   1.11.2
+   1.15.3

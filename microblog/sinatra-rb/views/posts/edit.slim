@@ -1,0 +1,12 @@
+h1 Edit Post
+form method="post" action="/posts/#{@post[:id]}"
+  input type="hidden" name="_method" value="patch"
+  label Title
+  br
+  input name="title" type="text" value="#{@post[:title]}"
+  br
+  label Text
+  br
+  textarea name="content" rows="10" =@post[:content]
+  br
+  input type="submit" value="Edit"

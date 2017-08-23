@@ -4,7 +4,7 @@ source 'https://rubygems.org' do
   gem 'puma'
   gem 'slim'
   gem 'sass'
-  gem 'mysql'
+  gem 'mysql2'
   gem 'sequel'
   gem 'bcrypt'
 end

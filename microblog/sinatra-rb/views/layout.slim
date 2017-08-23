@@ -1,0 +1,18 @@
+doctype html
+html
+  head
+    title Sinatra&Ruby MB
+    meta name="keywords" content="sinatra ruby web software microblog"
+    link rel='stylesheet' type='text/css' href = '/stylesheets/app.css'
+  body
+    header
+      - if @current_user
+        a href='/' Home
+        |&nbsp
+        a href='/logout' Logout
+      -else
+        a href='/signup' Registration
+        |&nbsp
+        a href='/login' Login
+    main
+      == yield
