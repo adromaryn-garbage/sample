@@ -3,12 +3,26 @@ require 'sinatra/reloader' if development?
 require 'slim'
 require 'sequel'
 require 'bcrypt'
+require 'pony'
+require 'redis'
+require 'json'
 
 DB ||= Sequel.connect(adapter: 'mysql2',
                     host: 'localhost',
                     database: 'microblog',
                     user: ENV['MICROBLOG_DB_USERNAME'],
                     password: ENV['MICROBLOG_DB_PASSWORD'])
+
+Pony.options = {
+  via: 'sendmail',
+  headers: { 'Content-Type' => 'text/html' },
+  via_options: {
+    :location  => ENV['SENDMAIL_PATH'],
+    :arguments => '-t'
+  }
+}
+
+REDIS ||= Redis.new
 
 class Blog < Sinatra::Base
   configure :development do
@@ -60,10 +74,32 @@ class Blog < Sinatra::Base
     redirect "/signup" if (login == '' or email == '' or password == '')
     redirect "/signup" unless password == password_confirmation
     password_hash = BCrypt::Password.create(password)
-    users = DB[:users]
     redirect "/signup" if (users.where(email: email).first or users.where(login: login).first)
-    users.insert(login: login, email: email, password_digest: password_hash)
+    token = SecureRandom.hex(300)
+    REDIS.set token, {login: login, email: email, password_digest: password_hash}.to_json
+    REDIS.expire(token, 10*60)
+    Pony.mail(
+      to: 'adromaryn@gmail.com',
+      from: ENV['MICROBLOG_MAIL'],
+      subject: "Microblog registration",
+      body: "Confirm your mail for account creating: <a href=\"#{ENV['MICROBLOG_HOST']}/signup/#{token}\">Confirm</a>"
+    )
     redirect "/login"
+  end
+
+  get "/signup/:token" do
+    token = params[:token]
+    data = REDIS.get token
+    redirect '/' unless data
+    user = JSON.parse(data)
+    begin
+      id = DB[:users].insert(user)
+      session[:user_id] = id if id
+    rescue Sequel::UniqueConstraintViolation
+      logger.warn { "email confirmation: user #{data['email']}  or #{data['login']} already created" }
+    end
+    REDIS.del(token)
+    redirect '/'
   end
 
   get "/logout" do

@@ -4,9 +4,16 @@ GEM
     backports (3.8.0)
     bcrypt (3.1.11)
     ffi (1.9.18)
+    mail (2.6.6)
+      mime-types (>= 1.16, < 4)
+    mime-types (3.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2016.0521)
     multi_json (1.12.1)
     mustermann (1.0.0)
     mysql2 (0.4.9)
+    pony (1.11)
+      mail (>= 2.0)
     puma (3.10.0)
     rack (2.0.3)
     rack-protection (2.0.0)
@@ -14,6 +21,7 @@ GEM
     rb-fsevent (0.10.2)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
+    redis (4.0.0)
     sass (3.5.1)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
@@ -44,7 +52,9 @@ PLATFORMS
 DEPENDENCIES
   bcrypt!
   mysql2!
+  pony!
   puma!
+  redis!
   sass!
   sequel!
   sinatra (~> 2.0.0)!
@@ -52,4 +62,4 @@ DEPENDENCIES
   slim!
 
 BUNDLED WITH
-   1.15.3
+   1.15.4

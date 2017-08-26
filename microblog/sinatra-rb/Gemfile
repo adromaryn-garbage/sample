@@ -7,4 +7,6 @@ source 'https://rubygems.org' do
   gem 'mysql2'
   gem 'sequel'
   gem 'bcrypt'
+  gem 'pony'
+  gem 'redis'
 end
